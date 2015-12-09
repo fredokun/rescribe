@@ -53,8 +53,8 @@
   (and (not (nil? t))
        (not (variable? t))
        (not (vec-term? t))
-       (not (seq-term? t))
-       (not (assoc-term? t))))
+       (not (assoc-term? t))
+       (not (seq-term? t))))
 
 (defn vars
   "Returns the set of variables occurring in term `t`."
