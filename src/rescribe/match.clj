@@ -11,7 +11,7 @@
 
 (defn match
   "Matches pattern `p` against term `t`.
-  Returns a substitution, a map from 
+  Returns a substitution, a map from
   variables to matched subterms, or `nil` if
   the matching fails."
   {:todo "Write a tail-recursive version (use a zipper ?)."}
