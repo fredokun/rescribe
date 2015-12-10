@@ -97,5 +97,56 @@
             (assoc-term? t) (let [vals' (apply-all s (vals t))]
                               (if (nil? vals')
                                 nil
-                                (into {} (map #([%1 %2]) (keys t) vals'))))
+                                (zipmap (keys t) vals')))
             :else t)))
+
+(defn- apply-some
+  "Applies strategy `s` to the sequence of terms `ts`,
+  yielding a vector of potentially rewritten terms. 
+  The strategy fails if `s` fails for all the elements of `ts`."
+  [s ts] (loop [ts ts, fail? true, res []]
+           (if (seq ts)
+             (let [t' (s (first ts))]
+               (if (nil? t')
+                 (recur (rest ts) fail? (conj res (first ts)))
+                 (recur (rest ts) false (conj res t'))))
+             (if fail?
+               nil?
+               res))))
+
+(defn some-sub
+  "A strategy that applies `s` to all the subterms of a given
+  term, and is a success iff `s` is a success for at least one of the subterms.
+  It is thus a failure of `s` fails for all the subterms.
+  If the term is not compound, the strategy is a success and yields
+  the identity."
+  [s]
+  (fn [t] (cond
+            (vec-term? t) (apply-some s t)
+            (seq-term? t) (let [ts (apply-some s t)]
+                            (if (nil? ts)
+                              nil
+                              (seq ts)))
+            (assoc-term? t) (let [vals' (apply-some s (vals t))]
+                              (if (nil? vals')
+                                nil
+                                (zipmap (keys t) vals')))
+            :else t)))
+
+
+(defn bottom-up
+  "Recursive bottom-up rewriting strategy."
+  [s] (fn [t]
+        (let [rec-s (>> (some-sub (bottom-up s))
+                        s)]
+          (rec-s t))))
+
+
+(defn top-down
+  "Recursive top-down rewriting strategy."
+  [s] (fn [t]
+        (let [rec-s (>> s
+                        (some-sub (top-down s)))]
+          (rec-s t))))
+
+
