@@ -102,3 +102,9 @@
     (seq-term? t) (map #(subst % s) t)
     (assoc-term? t) (into (empty t) (map (fn [k v] [k (subst v s)]) (keys t) (vals t)))
     :else t))
+
+(defn rule-wff?
+  "Checks if a rule `[lhs rhs]` is well-formed."
+  [lhs rhs] (clojure.set/subset? (vars rhs) (vars lhs)))
+
+

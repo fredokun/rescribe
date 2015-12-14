@@ -1,6 +1,6 @@
 
 (ns rescribe.strategy
-  "This namespaces defines the rescribe *strategy* language,
+  "This namespace defines the rescribe *strategy* language,
   and provides implementation for important high-level
   strategies such as top-down or bottom-up rewriting.
 
@@ -10,7 +10,8 @@
   (:require [rescribe.term :refer [vars subst
                                    vec-term?
                                    seq-term?
-                                   assoc-term?]]
+                                   assoc-term?
+                                   rule-wff?]]
             [rescribe.match :refer [match]]))
 
 
@@ -24,10 +25,6 @@
   "A failing strategy, always yielding `nil`."
   [_] nil)
 
-
-(defn rule-wff?
-  "Checks if a rule `[lhs rhs]` is well-formed."
-  [lhs rhs] (clojure.set/subset? (vars rhs) (vars lhs))) 
 
 (defn rule
   "This generates a strategy that tries to apply
