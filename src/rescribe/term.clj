@@ -92,16 +92,31 @@
 (defn subst
   "Applies substitution `s` (a map from variables to terms)
   to the term `t`."
-  {:todo "Write a tail-recursive (or trampoline'd) version."}
+  {:todo "Write a tail-recursive ?"}
   [t s]
-  (cond
-    (variable? t) (if-let [u (s t)]
-                    u
-                    t)
-    (vec-term? t) (mapv #(subst % s) t)
-    (seq-term? t) (map #(subst % s) t)
-    (assoc-term? t) (into (empty t) (map (fn [k v] [k (subst v s)]) (keys t) (vals t)))
-    :else t))
+  (clojure.walk/postwalk
+   (fn [v]
+     (if (variable? v)
+       (if-let [u (s v)]
+         u
+         v)
+       v))
+   t))
+
+(comment
+ (defn subst
+   "Applies substitution `s` (a map from variables to terms)
+  to the term `t`."
+   {:todo "Use clojure.walk/postwalk ?"}
+   [t s]
+   (cond
+     (variable? t) (if-let [u (s t)]
+                     u
+                     t)
+     (vec-term? t) (mapv #(subst % s) t)
+     (seq-term? t) (map #(subst % s) t)
+     (assoc-term? t) (into (empty t) (map (fn [k v] [k (subst v s)]) (keys t) (vals t)))
+     :else t)))
 
 (defn rule-wff?
   "Checks if a rule `[lhs rhs]` is well-formed."
