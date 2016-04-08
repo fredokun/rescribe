@@ -142,7 +142,7 @@
    simpl-impl-true-l (==> true ?X) -> ?X
    simpl-impl-true-r (==> ?X true) -> true
    simpl-impl-false-l (==> false ?X) -> true
-   simpl-impl-false-r (==> ?X false) -> ?X
+   simpl-impl-false-r (==> ?X false) -> (not ?X)
    ;; equivalence
    simpl-equiv-refl (<=> ?X ?X) -> true
    simpl-equiv-true-l (<=> true ?X) -> ?X
@@ -237,3 +237,22 @@
 
       (nnf '(==> x (==> (==> x y) y)))
       => '(or (not x) (or (and x (not y)) y)))
+
+;;{
+
+;; ## Conjunctive normal forms
+
+;;}
+
+(defsystem conjunctive-normal-form
+  [cnf-not-not (not (not ?X)) -> ?X
+   cnf-morgan-and (not (and ?X ?Y)) -> (or (not ?X) (not ?Y))
+   cnf-morgan-or (not (or ?X ?Y)) -> (and (not ?X) (not ?Y))
+   cnf-distrib-l (or (and ?X ?Y) ?Z) -> (and (or ?X ?Z) (or ?Y ?Z))
+   cnf-distrib-r (or ?X (and ?Y ?Z)) -> (and (or ?X ?Y) (or ?X ?Y))
+  ] with (top-down (or-else cnf-not-not
+                            cnf-morgan-and
+                            cnf-morgan-or
+                            cnf-distrib-l
+                            cnf-distrib-r
+                            success)))
