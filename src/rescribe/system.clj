@@ -2,9 +2,12 @@
   "This namespace defines the `defsystem` macro that
  is the principal mean of encoding rewrite systems
   in *rescribe*."
-  (:require [rescribe.term :refer [rule-wff?]]
+  (:require [rescribe.term :refer [variable?
+                                   seq-term?
+                                   vec-term?
+                                   assoc-term?
+                                   rule-wff?]]
             [rescribe.match :refer [match]]))
-
 
 (defn- rule-to-map
   [rname lhs mid rhs]
@@ -24,10 +27,21 @@
     (throw (ex-info "Missing arrow -> in rule." {:rule-name rname})))
   true)
 
+(defn apply-subst
+  "Apply the substitution `s` to term `t`."
+  [s t]
+  (cond
+    (variable? t) (get s t t)
+    (vec-term? t) (mapv #(apply-subst s %) t)
+    (assoc-term? t) (reduce-kv (fn [m k t']
+                                 (assoc m k (apply-subst s t'))) {} t)
+    (seq-term? t) (map #(apply-subst s %) t)
+    :else t))
+
 (defn rewrite
   [term lhs rhs]
   (when-let [s (match lhs term)]
-    (s rhs)))
+    (apply-subst s rhs)))
 
 (defn- mk-rule-fun
   [rname lhs _ rhs]

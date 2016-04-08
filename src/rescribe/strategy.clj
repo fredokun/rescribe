@@ -102,13 +102,14 @@
   yielding a vector of potentially rewritten terms. 
   The strategy fails if `s` fails for all the elements of `ts`."
   [s ts] (loop [ts ts, fail? true, res []]
+           ;; (println "[apply-some] ts=" ts "fail?=" fail? "res=" res)
            (if (seq ts)
              (let [t' (s (first ts))]
                (if (nil? t')
                  (recur (rest ts) fail? (conj res (first ts)))
                  (recur (rest ts) false (conj res t'))))
              (if fail?
-               nil?
+               nil
                res))))
 
 (defn some-sub
@@ -121,6 +122,7 @@
   (fn [t] (cond
             (vec-term? t) (apply-some s t)
             (seq-term? t) (let [ts (apply-some s t)]
+                            ;; (println "[some-sub]: ts=" ts)
                             (if (nil? ts)
                               nil
                               (seq ts)))

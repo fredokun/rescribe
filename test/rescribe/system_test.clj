@@ -45,6 +45,6 @@
        (arith-simpl '(0 + 2)) => 2
        (arith-simpl '(2 + 0)) => 2
        (arith-simpl '(1 * (2 + (0 * 1)))) => 2
-       (arith-simpl '(2 * 2) => '(2 * 2)))
+       (arith-simpl '(2 * 2)) => '(2 * 2))
 
 
