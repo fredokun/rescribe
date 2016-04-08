@@ -1,4 +1,4 @@
-(defproject rescribe "0.1.0-SNAPSHOT"
+(defproject rescribe "0.2.0-SNAPSHOT"
   :description "Rewrite systems in Clojure"
   :url "https://github.com/fredokun/rescribe"
   :license {:name "MIT License"
