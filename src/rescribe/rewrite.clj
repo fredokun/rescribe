@@ -59,10 +59,16 @@
        ([~term-param ~strat-param] (~strat-param ~term-param))
        ([~term-param] (~(symbol (str sys-name "-strategy")) ~term-param)))))
 
+
+(defn parse-rule [rulemap fresh name lhs rhs]
+  )
+
 (defn parse-rules [rules]
   (loop [rules rules, rulemap {}]
     (if (seq rules)
-      (recur (rest rules) (parse-rule rulemap (first rules)))
+      (let [[arg1 arg2 arg3 arg4] (first rules)]
+        ()
+        (recur (rest rules) (parse-rule rulemap (first rules))))
       rulemap)))
 
 (defn parse-defrewrite
