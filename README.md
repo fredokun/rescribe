@@ -6,7 +6,7 @@ Rewrite systems in Clojure
 
 ## License
 
-Copyright © 2015 Frederic Peschanski
+Copyright © 2015-2017 Frederic Peschanski
 
 Distributed under the MIT License.
 
