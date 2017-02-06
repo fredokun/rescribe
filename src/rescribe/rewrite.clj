@@ -1,5 +1,5 @@
 (ns rescribe.system
-  "This namespace defines the `defsystem` macro that
+  "This namespace defines the `defrewrite` macro that
  is the principal mean of encoding rewrite systems
   in *rescribe*."
   (:require [rescribe.term :refer [variable?
@@ -59,10 +59,25 @@
        ([~term-param ~strat-param] (~strat-param ~term-param))
        ([~term-param] (~(symbol (str sys-name "-strategy")) ~term-param)))))
 
-(defmacro defsystem
-  "Definition of a rewrite system with a default
-  rewrite strategy."
-  [sys-name [& rules] with-kw strat]
+(defn parse-rules [rules]
+  (loop [rules rules, rulemap {}]
+    (if (seq rules)
+      (recur (rest rules) (parse-rule rulemap (first rules)))
+      rulemap)))
+
+(defn parse-defrewrite
+  [rules opts]
+  (let [rulemap (parse-rules rules)
+        [with-kw strat] opts]
+    (when (and with-kw (not= with-kw :with))
+      (throw (ex-info "Malformed `defrewrite`, `:with` keyword expected"
+                      {:opts opts})))
+    {:rules rulemap
+     :strat strat}))
+
+(defmacro defrewrite
+  "Definition of a rewrite system."
+  [name [& rules] & opts]
   `(do
      ~@(map4 mk-rule-fun rules)
      ~(mk-sys-strategy sys-name strat)
