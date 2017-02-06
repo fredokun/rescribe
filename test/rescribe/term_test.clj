@@ -73,7 +73,7 @@ a sequential or an associative term"
  (pattern? '[:a :b :c { :a ?X } 42]) => true)
 
 (facts
- "Abount `subst` for term substitutions."
+ "About `subst` for term substitutions."
  (background ..s.. =contains=> {'?X 1 '?Y [2 3]})
  (subst '?X ..s..) => 1
  (subst '?Z ..s..) => '?Z

@@ -6,6 +6,7 @@
                                    seq-term?
                                    vec-term?
                                    assoc-term?
+                                   subst
                                    rule-wff?]]
             [rescribe.match :refer [match]]))
 
@@ -27,21 +28,10 @@
     (throw (ex-info "Missing arrow -> in rule." {:rule-name rname})))
   true)
 
-(defn apply-subst
-  "Apply the substitution `s` to term `t`."
-  [s t]
-  (cond
-    (variable? t) (get s t t)
-    (vec-term? t) (mapv #(apply-subst s %) t)
-    (assoc-term? t) (reduce-kv (fn [m k t']
-                                 (assoc m k (apply-subst s t'))) {} t)
-    (seq-term? t) (map #(apply-subst s %) t)
-    :else t))
-
 (defn rewrite
   [term lhs rhs]
   (when-let [s (match lhs term)]
-    (apply-subst s rhs)))
+    (subst rhs s)))
 
 (defn- mk-rule-fun
   [rname lhs _ rhs]
