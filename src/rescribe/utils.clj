@@ -97,4 +97,3 @@
         (throw (ex-info "No such walk mode" {:walk-mode (ffirst cont)})))
       ;; no continuation
       [form nil])))
-

@@ -22,7 +22,8 @@
     - **constants** are everything else.
 
   "
-  (:require [clojure.set :as s]))
+  (:require [clojure.set :as s]
+            [rescribe.utils :as u]))
 
 (defn variable?
   "The argument `t` is a term variable if
@@ -94,7 +95,7 @@
   to the term `t`."
   {:todo "Write a tail-recursive ?"}
   [t s]
-  (clojure.walk/postwalk
+  (u/postwalk
    (fn [v]
      (if (variable? v)
        (if-let [u (s v)]
@@ -102,6 +103,20 @@
          v)
        v))
    t))
+
+;; (defn subst
+;;   "Applies substitution `s` (a map from variables to terms)
+;;   to the term `t`."
+;;   {:todo "Write a tail-recursive ?"}
+;;   [t s]
+;;   (clojure.walk/postwalk
+;;    (fn [v]
+;;      (if (variable? v)
+;;        (if-let [u (s v)]
+;;          u
+;;          v)
+;;        v))
+;;    t))
 
 (defn rule-wff?
   "Checks if a rule `[lhs rhs]` is well-formed."
