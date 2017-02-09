@@ -1,13 +1,46 @@
 
 (ns rescribe.match
-  "This namespace provides the implementation
-  of the pattern matching algorithm."
-  (:require [rescribe.term :refer [variable?
+  "This namespace is for the matching algorithm.
+  We use core.match as a backend."
+  (:require [clojure.core.match :as m]
+            [rescribe.term :refer [variable?
                                    vec-term?
                                    seq-term?
                                    assoc-term?]]))
 
 
+(defn pattern-compile
+  "Compilation of `pattern`."
+  [pattern vars]
+  (cond
+    ;; symbol or variable
+    (symbol? pattern)
+    (if (or (contains? vars pattern)
+            (= pattern '&))
+      pattern
+      (list 'quote pattern))
+    ;; vector
+    (vec-term? pattern)
+    (mapv #(pattern-compile % vars) pattern)
+    ;; sequence
+    (seq-term? pattern)
+    (list (mapv #(pattern-compile % vars) pattern) :seq)
+    ;; assoc
+    (assoc-term? pattern)
+    (into {} (map (fn [[k p]] [k (pattern-compile p vars)]) pattern))
+    ;; things considered constants
+    :else pattern))
+
+(pattern-compile '(0 + x) '#{x})
+(pattern-compile '[0 + (0 + x)] '#{x})
+(pattern-compile '(0 + x & y) '#{x, y})
+(pattern-compile '{:a x :b 1 :c y} '#{x, y})
+(pattern-compile '{:a [x + 0] :b 1 :c y} '#{x, y})
+(pattern-compile '{:a (x + 0) :b 1 :c y} '#{x, y})
+
+(defn match-compile-seq [vars pattern]
+  (if (seq pattern)
+    ))
 
 (defn match
   "Matches pattern `p` against term `t`.
