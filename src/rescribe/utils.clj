@@ -5,7 +5,7 @@
   "This is a tail-recursive version of [[clojure.walk/postwalk]]."
   [f form]
   (loop [form form, cont ()]
-    (println "[postwalk] form=" form)
+    ;;(println "[postwalk] form=" form)
     (if (nil? cont)
       ;;; ***** finished *****
       form
@@ -55,7 +55,7 @@
                 (recur form' cont'))))))
 
 (defn continue-walk [f form cont]
-  (println "[continue-walk] form=" form)
+  ;;(println "[continue-walk] form=" form)
   (let [form (f form)]
     (if (seq cont)
       (case (ffirst cont)
@@ -98,45 +98,3 @@
       ;; no continuation
       [form nil])))
 
-(defn debug-fun [x]
-  [:walked x])
-
-;; leaves
-(postwalk debug-fun 42)
-(clojure.walk/postwalk debug-fun 42)
-
-(postwalk debug-fun "string")
-(clojure.walk/postwalk debug-fun "string")
-
-
-;; flat collections
-(postwalk debug-fun [10 20 30])
-(clojure.walk/postwalk debug-fun [10 20 30])
-
-(postwalk debug-fun (cons 10 (cons 20 (cons 30 ()))))
-(clojure.walk/postwalk debug-fun (cons 10 (cons 20 (cons 30 ()))))
-
-(postwalk debug-fun (list 10 20 30))
-(clojure.walk/walk debug-inner debug-outer (list 10 20 30))
-
-(defn debug-kv-fun [x]
-  (if (vector? x)
-    (let [[k v] x]
-      (if (vector? k)
-        [(second k) v]
-        x))
-    [:walked x]))
-
-(postwalk debug-kv-fun  {:a 1 :b 2 :c 3})
-(clojure.walk/postwalk debug-kv-fun {:a 1 :b 2 :c 3})
-
-(defrecord Test [a b c])
-
-(postwalk debug-kv-fun (->Test 1 2 3))
-(clojure.walk/postwalk debug-kv-fun (->Test 1 2 3))
-
-;; nested collections
-
-(postwalk debug-fun [10 [20 30 [40 50] 60] [70 80] 90])
-
-(clojure.walk/postwalk debug-fun [10 [20 30 [40 50] 60] [70 80] 90])
