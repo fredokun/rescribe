@@ -7,12 +7,12 @@
   A strategy is basically a function from a term to
   a rewritten term or nil.
   "
-  (:require [rescribe.term :refer [vars subst
+  (:require [rescribe.term :refer [mk-var vars subst
                                    vec-term?
                                    seq-term?
                                    assoc-term?
                                    rule-wff?]]
-            [rescribe.match :refer [match]]))
+            [rescribe.match :refer [match-compile]]))
 
 
 (defn success
@@ -26,13 +26,55 @@
   [_] nil)
 
 
-(defn rule
+(defn rule-expander
+  [lhs rhs vars]
+  (let [matcher (match-compile [lhs] vars)]
+    `(fn [t#] (when-let [s# (~matcher t#)]
+                ;; (println "[rule] matches: subst=" s#)
+                (subst (quote ~rhs) (second s#))))))
+
+(rule-expander '(0 + x) 'x '#{x})
+
+(defmacro rule
   "This generates a strategy that tries to apply
   the `[lhs rhs]` rule to the provided term `t`."
-  [lhs rhs]
-  {:pre [(rule-wff? lhs rhs)]}
-  (fn [t] (when-let [s (match lhs t)]
-            (subst rhs s))))
+  [lhs rhs vars]
+  `~(rule-expander lhs rhs vars))
+
+(macroexpand '(rule (0 + x) x #{x}))
+
+((rule (0 + x) x #{x}) '(0 + 2))
+((rule (0 + x) x #{x}) '(0 * 2))
+
+(defn rules-expander
+  [rules vars]
+  (let [matcher (match-compile (map first rules) vars)]
+    `(let [rhs# (quote ~(mapv (fn [x] (second x)) rules))]
+       (fn [t#] (when-let [s# (~matcher t#)]
+                  ;; (println "[rules] matches: subst=" s#)
+                  (subst (nth rhs# (first s#)) (second s#)))))))
+
+(rules-expander '([(0 + x) x]
+                  [(x + 0) x]
+                  [(1 * x) x]
+                  [(x * 1) x]) '#{x})
+
+(defmacro rules
+  [rules vars]
+  `~(rules-expander rules vars))
+
+(macroexpand-1 '(rules ([(0 + x) x]
+                        [(x + 0) x]
+                        [(1 * x) x]
+                        [(x * 1) x]) #{x}))
+
+(let [f (rules ([(0 + x) x]
+                [(x + 0) x]
+                [(1 * x) x]
+                [(x * 1) x]) #{x})]
+  [(f '(0 + 2))
+   (f '(0 + (1 * 2)))
+   (f '(1 + (1 * 2)))])
 
 (defn and-then
   "A strategy that is a success iff the sub-strategies

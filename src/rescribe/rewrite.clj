@@ -8,13 +8,8 @@
                                    assoc-term?
                                    subst
                                    rule-wff?]]
-            [rescribe.strategy :refer [or-else]]
+            [rescribe.strategy :as s :refer [or-else]]
             [rescribe.match :refer [match]]))
-
-(defn apply-rewrite
-  [term lhs rhs]
-  (when-let [s (match lhs term)]
-    (subst rhs s)))
 
 (defn- check-rule
   [rname lhs mid rhs]
@@ -72,57 +67,59 @@
      :rule-names rulenames
      :strategy strat}))
 
-(defn- mk-rule-letfun
-  [rname lhs rhs]
-  (let [args (gensym "args")]
-    `(~rname [& ~args]
-     (case (count ~args)
-       0 [~rname (quote ~lhs) (quote ~rhs)]
-       1 (apply-rewrite (first ~args) (quote ~lhs) (quote ~rhs))
-       (throw (ex-info "Wrong number of arguments (expecting 0 or 1)" {:args ~args}))))))
+(defn mk-rule-funs [rules vars]
+  (loop [rules rules, res []]
+    (if (seq rules)
+      (let [[rname [lhs rhs]] (first rules)]
+        (recur (rest rules) (conj res rname (s/rule-expander lhs rhs vars))))
+      res)))
 
-;; (mk-rule-letfun 'plus-zero '(?X + 0) '?X)
+(mk-rule-funs '[[plus-zero [(x + 0) x]]
+                [times-one [(x * 1) x]]] '#{x})
 
-(defn mk-default-strategy [rule-names]
-  `(or-else ~@rule-names))
+(defn mk-default-strategy [rules vars]
+  (s/rules-expander rules vars))
 
-;; (mk-default-strategy '[lplus-zero rplus-zero ltimes-one rtimes-one])
+(mk-default-strategy '[[(x + 0) x]
+                       [(x * 1) x]] '#{x})
 
 (defmacro rewrite
   "Definition of a rewrite system."
-  [& args]
+  [vars & args]
+  {:style/indent [1]}
   (let [{:keys [rules rule-names strategy]} (parse-rewrite args)
-        strat-fn (or strategy (mk-default-strategy rule-names))
-        rule-funs (map (fn [[rname [lhs rhs]]]
-                         (mk-rule-letfun rname lhs rhs)) rules)
-        params (gensym "params")
-        strat-fn-name (gensym "strat-fn")]
-    `(letfn [~@rule-funs]
-       (let [~strat-fn-name ~strat-fn]
+        varset (into #{} vars)
+        strat-fn (or strategy (mk-default-strategy (map (fn [[_ [lhs rhs]]]
+                                                          [lhs rhs]) rules) varset))
+        params (gensym "params")]
+    `(let ~(mk-rule-funs rules varset)
+       (let [strat-fn# ~strat-fn]
          (fn [& ~params]
            (case (count ~params)
-             0 ~strat-fn-name
-             1 (~strat-fn-name (first ~params))
+             0 strat-fn#
+             1 (strat-fn# (first ~params))
              (throw (ex-info "Wrong number of arguments (expecting 0 or 1)" {:args ~params}))))))))
 
-;; (macroexpand-1 '(rewrite
-;;                  lplus-zero (0 + ?X) -> ?X
-;;                  rplus-zero (?X + 0) -> ?X
-;;                  ltimes-one (?X * 1) -> ?X
-;;                  rtimes-one (1 * ?X) -> ?X))
+(macroexpand-1 '(rewrite [x]
+                         lplus-zero (0 + x) -> x
+                         rplus-zero (x + 0) -> x
+                         ltimes-one (x * 1) -> x
+                         rtimes-one (1 * x) -> x))
 
-;; ((rewrite
-;;   lplus-zero (0 + ?X) -> ?X
-;;   rplus-zero (?X + 0) -> ?X
-;;   ltimes-one (?X * 1) -> ?X
-;;   rtimes-one (1 * ?X) -> ?X)
-;;  '(0 + 4))
+((rewrite [x]
+  lplus-zero (0 + x) -> x
+  rplus-zero (x + 0) -> x
+  ltimes-one (x * 1) -> x
+  rtimes-one (1 * x) -> x)
+ '(0 + 4))
 
-;; ((rewrite
-;;   lplus-zero (0 + ?X) -> ?X
-;;   rplus-zero (?X + 0) -> ?X
-;;   ltimes-one (?X * 1) -> ?X
-;;   rtimes-one (1 * ?X) -> ?X)
-;;  42)
+((rewrite [x]
+  lplus-zero (0 + x) -> x
+  rplus-zero (x + 0) -> x
+  ltimes-one (x * 1) -> x
+  rtimes-one (1 * x) -> x)
+ 42)
+
+
 
 

@@ -25,12 +25,10 @@
   (:require [clojure.set :as s]
             [rescribe.utils :as u]))
 
-(defrecord Var [name])
-
 (defn variable?
   "Check if the argument `t` is a term variable."
   [t]
-  (instance? Var t))
+  (symbol? t))
 
 (defn vec-term?
   "The argument `t` is a *vector term* if
