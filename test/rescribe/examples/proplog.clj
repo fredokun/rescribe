@@ -31,7 +31,7 @@
 ;; A formula in (full) propositional logic, is either:
 
 ;;   - a constant `true` or  `false`
-;;   - an atom or variable `?X`, `?Y`, etc.
+;;   - an atom or variable `x`, `y`, etc.
 ;;   - a conjunction of two sub-formulas `(and <prop> <prop>)`
 ;;   - a disjunction of two sub-formulas `(or <prop> <prop>)`
 ;;   - an implication `(==> <prop> <prop>)`
@@ -41,13 +41,13 @@
 ;; without variables.
 
 (def constant-formula?
-  (rewrite
+  (rewrite [x y]
    true-const? true -> true
    false-const? false -> true
-   conjunction? (and ?X ?Y) -> true
-   disjunction? (or ?X ?Y) -> true
-   implication? (==> ?X ?Y) -> true
-   equivalence? (<=> ?X ?Y) -> true))
+   conjunction? (and x y) -> true
+   disjunction? (or x y) -> true
+   implication? (==> x y) -> true
+   equivalence? (<=> x y) -> true))
 
 (fact "Checking some constant formulas."
 
@@ -55,7 +55,7 @@
       (constant-formula? '(and p q)) => true
       (constant-formula? '(==> p q)) => true
 
-      (constant-formula? '?X) => nil ;; variable are not (yet) recognizable
+      (constant-formula? 'x) => nil ;; variable are not (yet) recognizable
 
       )
 
@@ -81,7 +81,7 @@
       (formula? '(> p q)) => nil
       )
 
-;; **Remark**: the recognizer does not *yet* check the subformulas
+;; **Remark**: the recognizer does not check the subformulas
 
 ;;}
 
@@ -93,37 +93,37 @@
 ;; This is a directed encoding of well-known simplifying tautologies.
 
 (def simplify
-  (rewrite
+  (rewrite [x]
    ;; negation
    simpl-not-true (not true) -> false
    simpl-not-false (not false) -> true
-   simpl-not-not (not (not ?X)) -> ?X
+   simpl-not-not (not (not x)) -> x
    ;; conjunction
-   simpl-and-absurd-l (and ?X (not ?X)) -> false
-   simpl-and-absurd-r (and (not ?X) ?X) -> false
-   simpl-and-true-l (and true ?X) -> ?X
-   simpl-and-true-r (and ?X true) -> ?X
-   simpl-and-false-l (and false ?X) -> false
-   simpl-and-false-r (and ?X false) -> false
+   simpl-and-absurd-l (and x (not x)) -> false
+   simpl-and-absurd-r (and (not x) x) -> false
+   simpl-and-true-l (and true x) -> x
+   simpl-and-true-r (and x true) -> x
+   simpl-and-false-l (and false x) -> false
+   simpl-and-false-r (and x false) -> false
    ;; disjunction
-   simpl-or-exclude-l (or ?X (not ?X)) -> true
-   simpl-or-exclude-r (or (not ?X) ?X) -> true
-   simpl-or-true-l (or true ?X) -> true
-   simpl-or-true-r (or ?X true) -> true
-   simpl-or-false-l (or false ?X) -> ?X
-   simpl-or-false-r (or ?X false) -> ?X
+   simpl-or-exclude-l (or x (not x)) -> true
+   simpl-or-exclude-r (or (not x) x) -> true
+   simpl-or-true-l (or true x) -> true
+   simpl-or-true-r (or x true) -> true
+   simpl-or-false-l (or false x) -> x
+   simpl-or-false-r (or x false) -> x
    ;; implication
-   simpl-impl-refl (==> ?X ?X) -> true
-   simpl-impl-true-l (==> true ?X) -> ?X
-   simpl-impl-true-r (==> ?X true) -> true
-   simpl-impl-false-l (==> false ?X) -> true
-   simpl-impl-false-r (==> ?X false) -> (not ?X)
+   simpl-impl-refl (==> x x) -> true
+   simpl-impl-true-l (==> true x) -> x
+   simpl-impl-true-r (==> x true) -> true
+   simpl-impl-false-l (==> false x) -> true
+   simpl-impl-false-r (==> x false) -> (not x)
    ;; equivalence
-   simpl-equiv-refl (<=> ?X ?X) -> true
-   simpl-equiv-true-l (<=> true ?X) -> ?X
-   simpl-equiv-true-r (<=> ?X true) -> ?X
-   simpl-equiv-false-l (<=> false ?X) -> (not ?X)
-   simpl-equiv-false-r (<=> ?X false) -> (not ?X)
+   simpl-equiv-refl (<=> x x) -> true
+   simpl-equiv-true-l (<=> true x) -> x
+   simpl-equiv-true-r (<=> x true) -> x
+   simpl-equiv-false-l (<=> false x) -> (not x)
+   simpl-equiv-false-r (<=> x false) -> (not x)
    :strategy (bottom-up (or-else simpl-not-true
                                  simpl-not-false
                                  simpl-not-not
@@ -178,8 +178,8 @@
 
 (def and-or-form
   (rewrite
-   and-or-impl (==> ?X ?Y) -> (or (not ?X) ?Y)
-   and-or-equiv (<=> ?X ?Y) -> (and (==> ?X ?Y) (==> ?Y ?X))
+   and-or-impl (==> x y) -> (or (not x) y)
+   and-or-equiv (<=> x y) -> (and (==> x y) (==> y x))
   :strategy (bottom-up (or-else and-or-impl
                                 and-or-equiv
                                 success))))
@@ -187,9 +187,9 @@
 
 (def negation-normal-form
   (rewrite
-   nnf-not-not (not (not ?X)) -> ?X
-   nnf-morgan-and (not (and ?X ?Y)) -> (or (not ?X) (not ?Y))
-   nnf-morgan-or (not (or ?X ?Y)) -> (and (not ?X) (not ?Y))
+   nnf-not-not (not (not x)) -> x
+   nnf-morgan-and (not (and x y)) -> (or (not x) (not y))
+   nnf-morgan-or (not (or x y)) -> (and (not x) (not y))
    :strategy (top-down (or-else nnf-not-not
                                 nnf-morgan-and
                                 nnf-morgan-or
@@ -213,11 +213,11 @@
 
 (def conjunctive-normal-form
   (rewrite
-   cnf-not-not (not (not ?X)) -> ?X
-   cnf-morgan-and (not (and ?X ?Y)) -> (or (not ?X) (not ?Y))
-   cnf-morgan-or (not (or ?X ?Y)) -> (and (not ?X) (not ?Y))
-   cnf-distrib-l (or (and ?X ?Y) ?Z) -> (and (or ?X ?Z) (or ?Y ?Z))
-   cnf-distrib-r (or ?X (and ?Y ?Z)) -> (and (or ?X ?Y) (or ?X ?Y))
+   cnf-not-not (not (not x)) -> x
+   cnf-morgan-and (not (and x y)) -> (or (not x) (not y))
+   cnf-morgan-or (not (or x y)) -> (and (not x) (not y))
+   cnf-distrib-l (or (and x y) ?Z) -> (and (or x ?Z) (or y ?Z))
+   cnf-distrib-r (or x (and y ?Z)) -> (and (or x y) (or x y))
    :strategy (top-down (or-else cnf-not-not
                                 cnf-morgan-and
                                 cnf-morgan-or

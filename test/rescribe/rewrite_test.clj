@@ -17,11 +17,11 @@
       (check-rule 'missing-arrow '(?X + 0) '=> '?X) => (throws Exception))
 
 (def arith-simpl
-  (rewrite
-   lplus-zero (0 + ?X) -> ?X
-   rplus-zero (?X + 0) -> ?X
-   ltimes-one (1 * ?X) -> ?X
-   rtimes-one (?X * 1) -> ?X
+  (rewrite [x]
+   lplus-zero (0 + x) -> x
+   rplus-zero (x + 0) -> x
+   ltimes-one (1 * x) -> x
+   rtimes-one (x * 1) -> x
    :strategy (bottom-up (or-else lplus-zero
                                  rplus-zero
                                  ltimes-one
@@ -33,6 +33,7 @@
        (arith-simpl '(2 + 0)) => 2
        (arith-simpl '(1 * (2 + (0 * 1)))) => 2
        (arith-simpl '(2 * 2)) => '(2 * 2))
+
 
 
 

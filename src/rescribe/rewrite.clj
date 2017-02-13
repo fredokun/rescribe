@@ -13,8 +13,8 @@
 
 (defn- check-rule
   [rname lhs mid rhs]
-  (when (not (rule-wff? lhs rhs))
-    (throw (ex-info "Malformed rule." {:rule-name rname :lhs lhs :rhs rhs})))
+  ;;(when (not (rule-wff? lhs rhs))
+  ;;(throw (ex-info "Malformed rule." {:rule-name rname :lhs lhs :rhs rhs})))
   (when (not (= (name mid) "->"))
     (throw (ex-info "Missing arrow -> in rule." {:rule-name rname})))
   true)

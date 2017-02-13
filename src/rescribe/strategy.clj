@@ -7,7 +7,7 @@
   A strategy is basically a function from a term to
   a rewritten term or nil.
   "
-  (:require [rescribe.term :refer [mk-var vars subst
+  (:require [rescribe.term :refer [vars subst
                                    vec-term?
                                    seq-term?
                                    assoc-term?
@@ -41,10 +41,10 @@
   [lhs rhs vars]
   `~(rule-expander lhs rhs vars))
 
-(macroexpand '(rule (0 + x) x #{x}))
+;; (macroexpand '(rule (0 + x) x #{x}))
 
-((rule (0 + x) x #{x}) '(0 + 2))
-((rule (0 + x) x #{x}) '(0 * 2))
+;; ((rule (0 + x) x #{x}) '(0 + 2))
+;; ((rule (0 + x) x #{x}) '(0 * 2))
 
 (defn rules-expander
   [rules vars]
@@ -54,27 +54,27 @@
                   ;; (println "[rules] matches: subst=" s#)
                   (subst (nth rhs# (first s#)) (second s#)))))))
 
-(rules-expander '([(0 + x) x]
-                  [(x + 0) x]
-                  [(1 * x) x]
-                  [(x * 1) x]) '#{x})
+;; (rules-expander '([(0 + x) x]
+;;                   [(x + 0) x]
+;;                   [(1 * x) x]
+;;                   [(x * 1) x]) '#{x})
 
 (defmacro rules
   [rules vars]
   `~(rules-expander rules vars))
 
-(macroexpand-1 '(rules ([(0 + x) x]
-                        [(x + 0) x]
-                        [(1 * x) x]
-                        [(x * 1) x]) #{x}))
+;; (macroexpand-1 '(rules ([(0 + x) x]
+;;                         [(x + 0) x]
+;;                         [(1 * x) x]
+;;                         [(x * 1) x]) #{x}))
 
-(let [f (rules ([(0 + x) x]
-                [(x + 0) x]
-                [(1 * x) x]
-                [(x * 1) x]) #{x})]
-  [(f '(0 + 2))
-   (f '(0 + (1 * 2)))
-   (f '(1 + (1 * 2)))])
+;; (let [f (rules ([(0 + x) x]
+;;                 [(x + 0) x]
+;;                 [(1 * x) x]
+;;                 [(x * 1) x]) #{x})]
+;;   [(f '(0 + 2))
+;;    (f '(0 + (1 * 2)))
+;;    (f '(1 + (1 * 2)))])
 
 (defn and-then
   "A strategy that is a success iff the sub-strategies
